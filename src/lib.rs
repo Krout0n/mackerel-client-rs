@@ -55,6 +55,7 @@ pub mod graph_annotation;
 pub mod host;
 pub mod invitation;
 pub mod metadata;
+pub mod metric;
 pub mod monitor;
 pub mod organization;
 pub mod role;
