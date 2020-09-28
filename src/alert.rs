@@ -148,7 +148,7 @@ impl client::Client {
     /// Fetches all the open alerts.
     ///
     /// See https://mackerel.io/api-docs/entry/alerts#get.
-    pub fn list_alerts(&self) -> Result<Vec<Alert>> {
+    pub async fn list_alerts(&self) -> Result<Vec<Alert>> {
         self.request(
             Method::GET,
             "/api/v0/alerts",
@@ -156,12 +156,13 @@ impl client::Client {
             client::empty_body(),
             |res: ListAlertsResponse| res.alerts,
         )
+        .await
     }
 
     /// Closes the specified alert.
     ///
     /// See https://mackerel.io/api-docs/entry/alerts#close.
-    pub fn close_alert(&self, alert_id: String, reason: &str) -> Result<Alert> {
+    pub async fn close_alert(&self, alert_id: String, reason: &str) -> Result<Alert> {
         let body: HashMap<&str, &str> = [("reason", reason)].iter().cloned().collect();
         self.request(
             Method::POST,
@@ -170,5 +171,6 @@ impl client::Client {
             Some(body),
             |alert| alert,
         )
+        .await
     }
 }
