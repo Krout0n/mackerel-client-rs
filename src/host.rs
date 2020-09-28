@@ -1,7 +1,7 @@
-use crate::{client, errors::*};
+use crate::{client, errors::*, metric::HostMetricValue};
 use reqwest::Method;
 use serde_json::{map::Map, Value};
-use std::default;
+use std::{collections::HashMap, default};
 
 #[derive(Debug, Deserialize)]
 pub struct HostId {
@@ -122,6 +122,17 @@ impl client::Client {
             vec![],
             Some(param),
             |host_id: HostId| host_id.id,
+        )
+        .await
+    }
+
+    pub async fn post_metrics(&self, param: Vec<HostMetricValue>) -> Result<()> {
+        self.request(
+            Method::POST,
+            "/api/v0/tsdb",
+            vec![],
+            Some(param),
+            |_: HashMap<String, bool>| (),
         )
         .await
     }
