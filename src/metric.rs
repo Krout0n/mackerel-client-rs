@@ -1,4 +1,4 @@
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct HostMetricValue {
     #[serde(rename(serialize = "hostId"))]
     pub host_id: String,
