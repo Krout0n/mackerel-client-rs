@@ -14,6 +14,7 @@ pub struct Client {
     api_key: String,
     api_base: String,
     user_agent: String,
+    proxy: Option<String>,
 }
 
 impl default::Default for Client {
@@ -22,6 +23,7 @@ impl default::Default for Client {
             api_key: "".to_string(),
             api_base: "https://api.mackerelio.com".to_string(),
             user_agent: "mackerel-client-rs".to_string(),
+            proxy: None,
         }
     }
 }
@@ -47,6 +49,18 @@ impl Client {
             api_base: api_base.to_string(),
             ..Default::default()
         }
+    }
+
+    pub fn new_with_proxy(
+        api_key: &str,
+        proxy: String,
+    ) -> std::result::Result<Self, url::ParseError> {
+        reqwest::Url::parse(&proxy)?;
+        Ok(Self {
+            api_key: api_key.to_string(),
+            proxy: Some(proxy),
+            ..Default::default()
+        })
     }
 
     fn build_url(&self, path: &str, queries: Vec<(&str, Vec<&str>)>) -> url::Url {
@@ -91,7 +105,15 @@ impl Client {
         for<'de> R: serde::de::Deserialize<'de>,
         F: FnOnce(R) -> S,
     {
-        let client = reqwest::Client::new();
+        // proxy_url is already validated by associated constructor(new_with_proxy).
+        let client = if let Some(proxy_url) = &self.proxy {
+            let proxy = reqwest::Proxy::http(proxy_url)
+                .or_else(|_| reqwest::Proxy::https(proxy_url))
+                .expect("The schema of a given URL is not supported. Use `http` or `https`");
+            reqwest::Client::builder().proxy(proxy).build().unwrap()
+        } else {
+            reqwest::Client::new()
+        };
         let url = self.build_url(path.as_ref(), queries);
         let body_bytes = body_opt
             .map(|b| serde_json::to_vec(&b).unwrap())
